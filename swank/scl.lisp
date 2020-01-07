@@ -157,8 +157,8 @@
                       (not (load output-file)))))))))
 
 (defimplementation swank-compile-string (string &key buffer position filename
-                                                policy)
-  (declare (ignore filename policy))
+                                                line column policy)
+  (declare (ignore filename line column policy))
   (with-compilation-hooks ()
     (let ((*buffer-name* buffer)
           (*buffer-start-position* position)
@@ -995,7 +995,8 @@ Signal an error if no constructor can be found."
 
 ;;;; Miscellaneous.
 
-(defimplementation macroexpand-all (form)
+(defimplementation macroexpand-all (form &optional env)
+  (declare (ignore env))
   (macroexpand form))
 
 (defimplementation set-default-directory (directory)

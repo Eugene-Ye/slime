@@ -265,7 +265,8 @@
 (defimplementation default-directory ()
   (directory-namestring (ccl:current-directory)))
 
-(defimplementation macroexpand-all (form)
+(defimplementation macroexpand-all (form &optional env)
+  (declare (ignore env))
   (ccl:macroexpand-all form))
 
 ;;; Documentation
@@ -377,8 +378,8 @@
 		(or failure? (and load-p (load output-file))))))))
 
 (defimplementation swank-compile-string (string &key buffer position filename
-					 policy)
-  (declare (ignore filename policy))
+                                                line column policy)
+  (declare (ignore filename line column policy))
   (with-compilation-hooks ()
     (let ((*buffer-name* buffer)
           (*buffer-position* position)

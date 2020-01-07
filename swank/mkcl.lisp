@@ -265,8 +265,8 @@
                    (or failure-p
                        (and load-p (not (load output-truename))))))))))
 
-(defimplementation swank-compile-string (string &key buffer position filename policy)
-  (declare (ignore filename policy))
+(defimplementation swank-compile-string (string &key buffer position filename line column policy)
+  (declare (ignore filename line column policy))
   (with-compilation-hooks ()
     (let ((*buffer-name* buffer)
           (*buffer-start-position* position)
@@ -348,7 +348,8 @@
   ;; It is a bit a shame we have to load the entire module to get that.
   (require 'walker))
 
-(defimplementation macroexpand-all (form)
+(defimplementation macroexpand-all (form &optional env)
+  (declare (ignore env))
   (walker:macroexpand-all form))
 
 (defimplementation describe-symbol-for-emacs (symbol)

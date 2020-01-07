@@ -39,21 +39,14 @@
 ;;           'slime-presentation-inspector-insert-ispec))
 ;;
 (defface slime-repl-output-mouseover-face
-  (if (featurep 'xemacs)
-      '((t (:bold t)))
-    (if (slime-face-inheritance-possible-p)
-        '((t
-           (:box
-            (:line-width 1 :color "black" :style released-button)
-            :inherit
-            slime-repl-inputed-output-face)))
-      '((t (:box (:line-width 1 :color "black"))))))
+    '((t (:box (:line-width 1 :color "black" :style released-button)
+          :inherit slime-repl-inputed-output-face)))
   "Face for Lisp output in the SLIME REPL, when the mouse hovers over it"
   :group 'slime-repl)
 
 (defface slime-repl-inputed-output-face
   '((((class color) (background light)) (:foreground "Red"))
-    (((class color) (background dark)) (:foreground "Red"))
+    (((class color) (background dark)) (:foreground "light salmon"))
     (t (:slant italic)))
   "Face for the result of an evaluation in the SLIME REPL."
   :group 'slime-repl)
@@ -75,7 +68,7 @@ TARGET can be nil (regular process output) or :repl-result."
   (setf (gethash id slime-presentation-start-to-point)
         ;; We use markers because text can also be inserted before this presentation.
         ;; (Output arrives while we are writing presentations within REPL results.)
-        (copy-marker (slime-output-target-marker target) nil)))
+        (copy-marker (slime-repl-output-target-marker target) nil)))
 
 (defun slime-mark-presentation-start-handler (process string)
   (if (and string (string-match "<\\([-0-9]+\\)" string))
@@ -89,7 +82,7 @@ TARGET can be nil (regular process output) or :repl-result."
   (let ((start (gethash id slime-presentation-start-to-point)))
     (remhash id slime-presentation-start-to-point)
     (when start
-      (let* ((marker (slime-output-target-marker target))
+      (let* ((marker (slime-repl-output-target-marker target))
              (buffer (and marker (marker-buffer marker))))
         (with-current-buffer buffer
           (let ((end (marker-position marker)))
@@ -784,7 +777,7 @@ output; otherwise the new input is appended."
 
 (defun slime-presentation-write-result (string)
   (with-current-buffer (slime-output-buffer)
-    (let ((marker (slime-output-target-marker :repl-result))
+    (let ((marker (slime-repl-output-target-marker :repl-result))
           (saved-point (point-marker)))
       (goto-char marker)
       (slime-propertize-region `(face slime-repl-result-face
@@ -806,14 +799,16 @@ output; otherwise the new input is appended."
      (slime-repl-emit string))
     (:repl-result
      (slime-presentation-write-result string))
-    (t (slime-emit-to-target string target))))
+    (t (slime-repl-emit-to-target string target))))
 
 (defun slime-presentation-current-input (&optional until-point-p)
   "Return the current input as string.
 The input is the region from after the last prompt to the end of
 buffer. Presentations of old results are expanded into code."
-  (slime-buffer-substring-with-reified-output  slime-repl-input-start-mark
-					       (point-max)))
+  (slime-buffer-substring-with-reified-output (slime-repl-history-yank-start)
+                                              (if until-point-p
+                                                  (point)
+                                                (point-max))))
 
 (defun slime-presentation-on-return-pressed (end-of-input)
   (when (and (car (slime-presentation-around-or-before-point (point)))
